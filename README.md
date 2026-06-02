@@ -1,70 +1,77 @@
 # dirstat
 
-Fast **directory statistics** analyzer. Zero dependencies — pure Python stdlib.
+Directory statistics without the guesswork.
 
-See file type breakdown, sizes, and largest files at a glance.
+```
+$ python dirstat.py summary ~/projects/myapp
 
-## Install
+  /home/user/projects/myapp
+  3,241 files  ·  128.4 MB
+
+  ext             files      size  chart
+  ----------      -------  ------  ----------------------
+  .py              1,204    18.2 MB  ▓▓▓▓▓▓░░░░░░░░░░░░  14.2%
+  .json              487    42.1 MB  ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░  32.8%
+  .png               201    35.7 MB  ▓▓▓▓▓▓▓▓▓▓▓░░░░░░░  27.8%
+  ...
+```
+
+## Setup
 
 ```bash
 curl -O https://raw.githubusercontent.com/yangming-zhang/dirstat/main/dirstat.py
 python dirstat.py --help
 ```
 
+Python 3.9+, zero dependencies.
+
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `summary` | File type breakdown with sizes and bar chart |
-| `largest` | List largest files |
-| `tree`    | Visual directory tree with file sizes |
+```
+summary   file type breakdown by count and size
+largest   list the N biggest files
+tree      visual directory tree with file sizes
+dupes     find duplicate files (by content)
+```
 
 ## Usage
 
 ```bash
-# File type breakdown for current directory
-python dirstat.py summary
+# What's eating space in this repo?
+python dirstat.py summary .
 
-# Analyze a specific path, show top 20 extensions
-python dirstat.py summary /path/to/project --top 20
+# Show top 30 extensions instead of 15
+python dirstat.py summary . --top 30
 
-# List 10 largest files
-python dirstat.py largest -n 10 /path/to/project
+# 10 biggest files
+python dirstat.py largest -n 10 /some/path
 
-# Directory tree (depth 2)
-python dirstat.py tree --depth 2
+# Tree, 2 levels deep, with directory sizes
+python dirstat.py tree --depth 2 --sizes
 
-# Exclude custom directories
-python dirstat.py summary . --exclude ".git,dist,build"
+# Find duplicates
+python dirstat.py dupes ~/Downloads
+
+# Ignore extra directories
+python dirstat.py summary . --exclude ".git,dist,coverage"
 ```
 
-## Example output
+## `dupes` output
 
 ```
-  Path   : /home/user/myproject
-  Files  : 1,842
-  Size   : 47.3 MB
-  Types  : 23
-
-  Extension       Files        Size  % size
-  ------------------------------------------------------------
-  .py              824      8.2 MB  ████████░░░░░░░░░░░░ 41.2%
-  .json            312      6.1 MB  ██████░░░░░░░░░░░░░░ 30.5%
-  .md               58      1.4 MB  █░░░░░░░░░░░░░░░░░░░  7.0%
-  .txt              96      0.9 MB  █░░░░░░░░░░░░░░░░░░░  4.5%
-  ...
+  3.4 MB × 3  (wasting 6.8 MB)
+    assets/hero.png
+    public/images/hero.png
+    backup/hero_copy.png
 ```
 
-## Options
+It uses SHA-1 of the first 64KB + file size as a fingerprint, which catches the common case (identical files) without reading every byte of every large file.
 
-- `--exclude` — comma-separated directory names to skip (default: `.git,__pycache__,node_modules,.venv`)
-- `--top N` — show top N extensions in summary (default: 15)
-- `--depth N` — max depth for tree view (default: 3)
+## Default excludes
 
-## Requirements
+`.git`, `__pycache__`, `node_modules`, `.venv`, `venv`, `.tox`, `.mypy_cache`, `dist`, `build`
 
-- Python 3.9+
-- No third-party packages
+Override with `--exclude` to add your own (replaces the defaults, so include any you still want).
 
 ## License
 
